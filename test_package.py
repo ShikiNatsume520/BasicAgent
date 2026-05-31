@@ -1,5 +1,5 @@
 """
-BasicAgent v1.1 包安装测试脚本
+BasicAgent v1.1.1 包安装测试脚本
 
 测试内容：
 1. 基本导入测试
@@ -229,7 +229,7 @@ def test_prompt_injection():
 def main():
     """主测试函数"""
     print("\n" + "=" * 60)
-    print("  BasicAgent v1.1 包安装测试")
+    print("  BasicAgent v1.1.1 包安装测试")
     print("=" * 60)
 
     results = []
@@ -250,16 +250,16 @@ def main():
     failed = sum(1 for _, result in results if not result)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[PASS]" if result else "[FAIL]"
         print(f"  {status} {name}")
 
     print(f"\n  总计: {passed} 通过, {failed} 失败")
 
     if failed == 0:
-        print("\n  🎉 所有测试通过！包安装正常。")
+        print("\n  [SUCCESS] 所有测试通过！包安装正常。")
         return 0
     else:
-        print("\n  ⚠️  有测试失败，请检查安装。")
+        print("\n  [ERROR] 有测试失败，请检查安装。")
         return 1
 
 
