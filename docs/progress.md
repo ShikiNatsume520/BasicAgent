@@ -1,8 +1,105 @@
-# BasicAgent v1.0 开发进度
+# BasicAgent 开发进度
 
-## 当前阶段：Phase 1 完成 ✅
+## 当前阶段：v1.1 完成 ✅
 
-v1.0 核心功能已全部实现，可用于实时对话游戏的 LLM 对话服务。
+v1.1 是专为 LLM 对话游戏优化的分支，实现了记忆裁剪压缩机制和提示词注入模块。
+
+---
+
+## v1.1 — 记忆与压缩系统 ✅
+
+### 1. 配置层扩展
+
+**文件：** `src/models/config.py` + `config/compression.json`
+
+- 新增 `MemoryConfig` 数据类
+  - `timeout_minutes: int = 30` — 低价值旧消息超时时间（分钟）
+  - `autocompact_threshold: float = 0.8` — 触发自动压缩的 token 占比阈值
+  - `compact_prompt_path: str = "config/prompts/compact.txt"` — 压缩指令提示词路径
+- `CompressionConfig` 新增 `memory: MemoryConfig` 字段
+
+**配置文件：** `config/compression.json`
+```json
+{
+  "memory": {
+    "timeout_minutes": 30,
+    "autocompact_threshold": 0.8,
+    "compact_prompt_path": "config/prompts/compact.txt"
+  }
+}
+```
+
+### 2. 压缩管线
+
+**文件：** `src/memory/compression.py`
+
+**`snip(messages, config)` — 消息裁剪：**
+- 找到最近的 `compact_boundary` 消息（`type="compact_boundary"`）
+- 裁剪该消息之前的所有消息（boundary 本身保留）
+- 基于 `timeout_minutes` 裁剪 boundary 后面的超时旧消息
+- 对消息快照操作，不修改原始 `mutable_messages`
+
+**`microcompact(messages, config)` — 微压缩（占位）：**
+- v1.1 不实现，直接返回原消息
+- 后续版本将实现：压缩单条过长的工具结果、截断过长的代码块
+
+**`autocompact(messages, system_prompt, config, llm_client)` — 自动压缩：**
+- 估算当前 token 数（system_prompt + messages）
+- 当超过阈值（`max_tokens * autocompact_threshold`）时触发压缩
+- 先执行 snip 裁剪
+- 加载压缩提示词，将 snip 后的消息发送给 LLM 生成摘要
+- 将摘要封装成 `compact_boundary` 消息返回
+- `compact_boundary` 会返回给 QueryEngine 并持久化到 JSONL 文件
+
+### 3. 提示词注入模块
+
+**文件：** `src/prompts/prompt.py`
+
+**`PromptInjector` 类：**
+- `load_rules(rules_path)` — 从 JSON 文件加载注入规则
+- `add_rule(rule)` — 添加单条注入规则
+- `set_variable(name, value)` — 设置变量值
+- `set_variables(variables)` — 批量设置变量值
+- `register_handler(point, handler)` — 注册自定义处理函数
+- `inject(messages, point, context)` — 在指定注入点注入提示词
+
+**注入点（`InjectionPoint` 枚举）：**
+- `BEFORE_COMPACT` — 压缩前注入（插入到消息列表开头）
+- `AFTER_COMPACT` — 压缩后注入（插入到消息列表末尾）
+- `ON_SCENE_CHANGE` — 场景切换时注入
+- `ON_USER_INPUT` — 用户输入时注入（插入到最后一条用户消息之前）
+- `ON_ASSISTANT_RESPONSE` — 助手回复前注入
+
+**变量替换：**
+- 支持 `{variable_name}` 格式的变量替换
+- 优先级：规则变量 > 实例变量 > 上下文变量
+
+### 4. QueryEngine 集成
+
+**文件：** `src/engine/queryengine.py`
+
+- `chatMessage()` 和 `submitMessage()` 方法集成压缩管线
+- 处理 `compact_boundary` 消息的持久化
+- 压缩发生时给调用方提示信息
+
+**压缩管线流程：**
+1. `snip` — 裁剪 boundary 之前的消息 + 超时旧消息
+2. `microcompact` — 占位，直接透传
+3. `autocompact` — 当 token 超过阈值时自动触发压缩
+
+### 5. 压缩提示词
+
+**文件：** `config/prompts/compact.txt`
+
+专为角色扮演场景设计的压缩提示词：
+- 保持角色语气、说话风格和性格特征
+- 保留重要事实、约定、承诺
+- 记录角色情感状态和关系变化
+- 保持时间线清晰
+
+---
+
+## v1.0 — 核心功能 ✅
 
 ---
 
@@ -112,6 +209,17 @@ v1.0 单进程会话管理器（纯 Python API，不绑定 HTTP 框架）：
 
 ## 测试覆盖
 
+### v1.1 测试
+
+| 测试文件 | 测试项 | 数量 |
+|----------|--------|------|
+| `tests/test_compression.py` | snip 裁剪/timeout 裁剪/autocompact 触发/compact_boundary 生成 | 17 |
+| `tests/test_prompt_injection.py` | 基本注入/多规则/变量替换/注入点/自定义处理/规则加载 | 20 |
+
+**v1.1 小计：37 项测试，全部通过。**
+
+### v1.0 测试
+
 | 测试文件 | 测试项 | 数量 |
 |----------|--------|------|
 | `tests/test_queryloop.py` | queryloop Mock 测试（文本/工具调用/多工具/空历史） | 4 |
@@ -120,7 +228,9 @@ v1.0 单进程会话管理器（纯 Python API，不绑定 HTTP 框架）：
 | `tests/test_chat.py` | chat/chat_stream/chatMessage/多轮对话/速度对比 | 28 |
 | `tests/test_roleplay.py` | 角色扮演对话测试（6 轮 NPC 对话） | 6 轮 |
 
-**总计：99 项测试 + 6 轮角色扮演，全部通过。**
+**v1.0 小计：99 项测试 + 6 轮角色扮演，全部通过。**
+
+**总计：136 项测试 + 6 轮角色扮演，全部通过。**
 
 ---
 
@@ -150,21 +260,29 @@ src/
 ├── __init__.py
 ├── models/                    ← Phase 0
 │   ├── __init__.py
-│   ├── config.py              ← 配置加载
+│   ├── config.py              ← 配置加载（含 MemoryConfig）
 │   ├── types.py               ← 数据模型 + MessageConverter
 │   └── client.py              ← LLMClient
 ├── engine/                    ← Phase 1
 │   ├── __init__.py
-│   ├── query.py               ← queryloop + chat + chat_stream
-│   ├── queryengine.py         ← QueryEngine（会话状态）
+│   ├── query.py               ← queryloop + chat + chat_stream（集成压缩管线）
+│   ├── queryengine.py         ← QueryEngine（会话状态 + compact_boundary 处理）
 │   └── transcript.py          ← TranscriptWriter（JSONL 持久化）
+├── memory/                    ← v1.1 新增
+│   ├── __init__.py
+│   └── compression.py         ← 压缩管线（snip + microcompact + autocompact）
+├── prompts/                   ← v1.1 新增
+│   ├── __init__.py
+│   └── prompt.py              ← 提示词注入模块（PromptInjector）
 └── daemon/                    ← Phase 1
     ├── __init__.py
     └── session_manager.py     ← SessionManager（会话管理）
 
 config/
 ├── BA_Agent.json              ← 模型别名映射
-├── compression.json           ← 压缩策略（Phase 3 实现）
+├── compression.json           ← 压缩策略 + 记忆配置
+├── prompts/                   ← v1.1 新增
+│   └── compact.txt            ← 压缩提示词
 └── provider/
     ├── deepseek-v4-pro.json
     └── deepseek-v4-flash.json
@@ -174,7 +292,9 @@ tests/
 ├── test_engine.py             ← QueryEngine 集成测试
 ├── test_phase1.py             ← 全功能测试
 ├── test_chat.py               ← chat 功能测试
-└── test_roleplay.py           ← 角色扮演对话测试
+├── test_roleplay.py           ← 角色扮演对话测试
+├── test_compression.py        ← v1.1 压缩管线测试
+└── test_prompt_injection.py   ← v1.1 提示词注入测试
 
 docs/
 ├── api-v1.md                  ← 上层应用开发者 API 文档
@@ -192,6 +312,18 @@ examples/
 
 ## 待完成（后续阶段）
 
+### v1.1 后续（继续优化对话游戏分支）
+
+| Phase | 内容 | 状态 |
+|-------|------|------|
+| v1.1-Phase 1 | snip 裁剪 + timeout 裁剪 | ✅ 完成 |
+| v1.1-Phase 2 | microcompact 微压缩 | 占位（v1.1 不实现） |
+| v1.1-Phase 3 | autocompact 自动压缩 | ✅ 完成 |
+| v1.1-Phase 4 | 提示词注入模块 | ✅ 完成 |
+| v1.1-Phase 5 | QueryEngine 集成 | ✅ 完成 |
+
+### v2.0 后续（在 v1.0 基础上继续开发）
+
 | Phase | 内容 | 状态 |
 |-------|------|------|
 | Phase 0 | 基础层（配置/模型/客户端） | ✅ 完成 |
@@ -206,6 +338,19 @@ examples/
 ---
 
 ## 关键设计决策
+
+### v1.1 设计决策
+
+| 决策 | 选择 | 原因 |
+|------|------|------|
+| snip 操作只修改快照 | 不修改 `mutable_messages` | 保证历史数据不丢失，支持 resume |
+| compact_boundary 持久化 | 返回给 QueryEngine 并记录到 JSONL | 下次 snip 可以找到最近的 boundary |
+| autocompact 异步执行 | 需要调用 LLM API | 压缩是耗时操作，使用 async/await |
+| 提示词注入可扩展 | 通过配置文件定义注入规则 | 支持动态调整注入行为 |
+| 压缩管线位置 | `src/memory/compression.py` | 独立模块，便于后续扩展 |
+| 提示词注入位置 | `src/prompts/prompt.py` | 独立模块，便于后续扩展 |
+
+### v1.0 设计决策
 
 | 决策 | 选择 | 原因 |
 |------|------|------|

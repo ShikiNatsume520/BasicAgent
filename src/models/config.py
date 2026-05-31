@@ -33,10 +33,19 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class MemoryConfig:
+    """记忆系统配置"""
+    timeout_minutes: int = 30  # 低价值旧消息超时时间（分钟）
+    autocompact_threshold: float = 0.8  # 触发自动压缩的 token 占比阈值
+    compact_prompt_path: str = "config/prompts/compact.txt"  # 压缩指令提示词路径
+
+
+@dataclass(frozen=True)
 class CompressionConfig:
     """压缩策略配置"""
     snip_window_tokens: int = 100000
     microcompact_max_tool_result_tokens: int = 5000
+    memory: MemoryConfig = field(default_factory=MemoryConfig)
     tier3_mode: str = "auto"
     tier3_threshold: float = 0.8
 
@@ -122,9 +131,21 @@ def load_config() -> AppConfig:
     if comp_path.exists():
         with open(comp_path, "r", encoding="utf-8") as f:
             comp = json.load(f)
+
+        # 加载 memory 配置
+        memory_config = MemoryConfig()
+        mem = comp.get("memory", {})
+        if mem:
+            memory_config = MemoryConfig(
+                timeout_minutes=mem.get("timeout_minutes", 30),
+                autocompact_threshold=mem.get("autocompact_threshold", 0.8),
+                compact_prompt_path=mem.get("compact_prompt_path", "config/prompts/compact.txt"),
+            )
+
         compression = CompressionConfig(
             snip_window_tokens=comp.get("snip", {}).get("window_tokens", 100000),
             microcompact_max_tool_result_tokens=comp.get("microcompact", {}).get("max_tool_result_tokens", 5000),
+            memory=memory_config,
             tier3_mode=comp.get("tier3", {}).get("mode", "auto"),
             tier3_threshold=comp.get("tier3", {}).get("threshold", 0.8),
         )

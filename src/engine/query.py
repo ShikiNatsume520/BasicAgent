@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from src.models.types import (
     Message,
@@ -21,6 +21,7 @@ from src.models.types import (
     QueryParams,
     new_uuid,
 )
+from src.memory.compression import snip, microcompact, autocompact
 
 
 # ============================================================
@@ -36,13 +37,45 @@ class State:
 
 
 # ============================================================
-# 占位函数（Phase 2/3 实现）
+# 压缩管线
 # ============================================================
 
 
-def _apply_compression_pipeline(messages: list[Message]) -> list[Message]:
-    """占位：Phase 3 实现压缩管线（snip → microcompact → autocompact）"""
-    return messages
+async def _apply_compression_pipeline(
+    messages: list[Message],
+    system_prompt: str,
+    llm_client=None,
+) -> tuple[list[Message], Optional[Message]]:
+    """
+    压缩管线：snip → microcompact → autocompact
+
+    Args:
+        messages: 消息快照
+        system_prompt: 系统提示词
+        llm_client: LLM 客户端（autocompact 需要）
+
+    Returns:
+        tuple: (处理后的消息列表, compact_boundary 消息或 None)
+    """
+    from src.models.config import get_config
+
+    config = get_config()
+    memory_config = config.compression.memory
+
+    # 步骤 1: snip 裁剪
+    messages = snip(messages, memory_config)
+
+    # 步骤 2: microcompact（占位）
+    messages = microcompact(messages, memory_config)
+
+    # 步骤 3: autocompact
+    if llm_client:
+        messages, compact_boundary = await autocompact(
+            messages, system_prompt, memory_config, llm_client
+        )
+        return messages, compact_boundary
+
+    return messages, None
 
 
 async def _execute_tool(tool_use: dict, context) -> str:
@@ -72,8 +105,13 @@ async def queryloop(params: QueryParams) -> AsyncGenerator[Message, None]:
     state = State(messages=list(params.messages))
 
     while True:
-        # ── 步骤 1：压缩管线（占位，直接透传）──
-        messages_for_query = _apply_compression_pipeline(state.messages)
+        # ── 步骤 1：压缩管线 ──
+        messages_for_query, compact_boundary = await _apply_compression_pipeline(
+            state.messages, params.system_prompt, llm_client
+        )
+        # 如果产生了 compact_boundary，yield 给调用方
+        if compact_boundary:
+            yield compact_boundary
 
         # ── 步骤 2：调用 LLM API（流式）──
         provider_msgs = converter.to_provider(messages_for_query, provider)
@@ -177,8 +215,13 @@ async def chat_stream(params: QueryParams) -> AsyncGenerator[str | Message, None
     converter = llm_client.converter
     provider = llm_client.provider
 
-    # ── 步骤 1：压缩管线（与 queryloop 相同）──
-    messages_for_query = _apply_compression_pipeline(params.messages)
+    # ── 步骤 1：压缩管线 ──
+    messages_for_query, compact_boundary = await _apply_compression_pipeline(
+        params.messages, params.system_prompt, llm_client
+    )
+    # 如果产生了 compact_boundary，yield 给调用方
+    if compact_boundary:
+        yield compact_boundary
 
     # ── 步骤 2：记忆注入（占位，Phase 4 实现）──
     # messages_for_query = await _inject_memory(messages_for_query, params.system_prompt)

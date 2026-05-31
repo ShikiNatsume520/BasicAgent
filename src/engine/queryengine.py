@@ -6,11 +6,10 @@ QueryEngine — 会话级状态持有者
 - sendMessage() — 简易对话（逐 token 流式，适用于实时游戏）
 - submitMessage() — 7 阶段 ReAct 循环（支持工具调用，适用于 Agent 场景）
 - resume() 从 transcript 恢复会话
+- 处理 compact_boundary 消息的持久化
 
 不负责：
 - 工具注册与执行（Phase 2）
-- 压缩（Phase 3）
-- 记忆系统（Phase 4）
 - 会话路由（由 SessionManager 处理）
 """
 
@@ -127,11 +126,19 @@ class QueryEngine:
                 # token → 透传给调用方
                 yield chunk
             elif isinstance(chunk, Message):
-                # 完整消息 → 回写状态 + 持久化
-                self.mutable_messages.append(chunk)
-                await self.transcript.record([chunk])
-                if chunk.usage:
-                    self.total_usage += chunk.usage
+                # 处理 compact_boundary 消息
+                if chunk.type == "compact_boundary":
+                    # compact_boundary 消息需要持久化并更新状态
+                    self.mutable_messages.append(chunk)
+                    await self.transcript.record([chunk])
+                    # 给调用方一个提示，表示发生了压缩
+                    yield f"\n[对话历史已压缩: {chunk.content[:50]}...]\n"
+                else:
+                    # 完整消息 → 回写状态 + 持久化
+                    self.mutable_messages.append(chunk)
+                    await self.transcript.record([chunk])
+                    if chunk.usage:
+                        self.total_usage += chunk.usage
 
         # yield 最终结果标记
         yield Message(
@@ -187,15 +194,30 @@ class QueryEngine:
         )
 
         async for msg in queryloop(params):
-            # 即时回写
-            self.mutable_messages.append(msg)
-            # 即时持久化
-            await self.transcript.record([msg])
-            # 累加 usage
-            if msg.usage:
-                self.total_usage += msg.usage
-            # 即时传递给调用方
-            yield msg
+            # 处理 compact_boundary 消息
+            if msg.type == "compact_boundary":
+                # compact_boundary 消息需要持久化并更新状态
+                self.mutable_messages.append(msg)
+                await self.transcript.record([msg])
+                # 给调用方一个系统消息，表示发生了压缩
+                yield Message(
+                    uuid=new_uuid(),
+                    parentUuid=self._last_message_uuid(),
+                    role="system",
+                    content=f"[对话历史已压缩: {msg.content[:50]}...]",
+                    type="system_init",
+                    timestamp=time.time(),
+                )
+            else:
+                # 即时回写
+                self.mutable_messages.append(msg)
+                # 即时持久化
+                await self.transcript.record([msg])
+                # 累加 usage
+                if msg.usage:
+                    self.total_usage += msg.usage
+                # 即时传递给调用方
+                yield msg
 
         # ── 阶段 6：后处理（占位）──
         # compact_boundary 截断、snip 移除 — Phase 3 实现
