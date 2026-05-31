@@ -1,0 +1,12 @@
+{
+  "snip": {
+    "window_tokens": 100000
+  },
+  "microcompact": {
+    "max_tool_result_tokens": 5000
+  },
+  "tier3": {
+    "mode": "auto",
+    "threshold": 0.8
+  }
+}

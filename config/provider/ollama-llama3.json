@@ -1,0 +1,6 @@
+{
+  "litellm_model": "ollama_chat/llama3",
+  "api_base": "http://localhost:11434",
+  "max_tokens": 8192,
+  "api_key_env": null
+}

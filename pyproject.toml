@@ -1,0 +1,35 @@
+[project]
+name = "basic-agent"
+version = "0.1.0"
+description = "A basic agent framework with memory and tool calling"
+requires-python = ">=3.11"
+dependencies = [
+    "litellm>=1.40",
+    "aiofiles>=24.1",
+    "pydantic>=2.7",
+    "tiktoken>=0.7",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "sse-starlette>=2.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.28",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
