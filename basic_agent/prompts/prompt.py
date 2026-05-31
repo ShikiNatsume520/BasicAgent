@@ -21,7 +21,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from src.models.types import Message, new_uuid
+from basic_agent.models.types import Message, new_uuid
 
 
 class InjectionPoint(str, Enum):

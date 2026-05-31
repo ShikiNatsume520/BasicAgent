@@ -15,7 +15,7 @@ from pathlib import Path
 
 import aiofiles
 
-from src.models.types import Message
+from basic_agent.models.types import Message
 
 
 class TranscriptWriter:

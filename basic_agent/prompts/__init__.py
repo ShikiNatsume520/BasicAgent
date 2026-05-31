@@ -7,6 +7,6 @@
 - 支持条件注入
 """
 
-from src.prompts.prompt import PromptInjector, InjectionPoint
+from basic_agent.prompts.prompt import PromptInjector, InjectionPoint
 
 __all__ = ["PromptInjector", "InjectionPoint"]

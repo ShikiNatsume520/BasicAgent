@@ -19,15 +19,15 @@ import time
 from pathlib import Path
 from typing import AsyncGenerator, Optional
 
-from src.models.types import (
+from basic_agent.models.types import (
     Message,
     Usage,
     ToolUseContext,
     QueryParams,
     new_uuid,
 )
-from src.engine.query import queryloop, chat_stream
-from src.engine.transcript import TranscriptWriter
+from basic_agent.engine.query import queryloop, chat_stream
+from basic_agent.engine.transcript import TranscriptWriter
 
 
 class QueryEngine:
@@ -81,7 +81,7 @@ class QueryEngine:
 
     def _get_model_config(self):
         """获取当前模型配置"""
-        from src.models.config import get_config
+        from basic_agent.models.config import get_config
         config = get_config()
         return config.models.get(self.model_alias)
 

@@ -1,4 +1,4 @@
-from src.models.types import (
+from basic_agent.models.types import (
     Message,
     ToolDefinition,
     StreamChunk,
@@ -12,8 +12,8 @@ from src.models.types import (
     QueryParams,
     new_uuid,
 )
-from src.models.config import AppConfig, ModelConfig, CompressionConfig, load_config, get_config, reset_config
-from src.models.client import LLMClient
+from basic_agent.models.config import AppConfig, ModelConfig, CompressionConfig, load_config, get_config, reset_config
+from basic_agent.models.client import LLMClient
 
 __all__ = [
     "Message",

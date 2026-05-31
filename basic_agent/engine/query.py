@@ -15,13 +15,13 @@ import time
 from dataclasses import dataclass, field
 from typing import AsyncGenerator, Optional
 
-from src.models.types import (
+from basic_agent.models.types import (
     Message,
     ChunkType,
     QueryParams,
     new_uuid,
 )
-from src.memory.compression import snip, microcompact, autocompact
+from basic_agent.memory.compression import snip, microcompact, autocompact
 
 
 # ============================================================
@@ -57,7 +57,7 @@ async def _apply_compression_pipeline(
     Returns:
         tuple: (处理后的消息列表, compact_boundary 消息或 None)
     """
-    from src.models.config import get_config
+    from basic_agent.models.config import get_config
 
     config = get_config()
     memory_config = config.compression.memory
@@ -96,7 +96,7 @@ async def queryloop(params: QueryParams) -> AsyncGenerator[Message, None]:
     输出：yield 每一轮新产生的消息（assistant / tool_result）
     """
     # 延迟导入，避免循环依赖
-    from src.models.client import LLMClient
+    from basic_agent.models.client import LLMClient
 
     llm_client = LLMClient(params.model_config.alias)
     converter = llm_client.converter
@@ -209,7 +209,7 @@ async def chat_stream(params: QueryParams) -> AsyncGenerator[str | Message, None
 
     适用于实时对话游戏等需要逐 token 输出的场景。
     """
-    from src.models.client import LLMClient
+    from basic_agent.models.client import LLMClient
 
     llm_client = LLMClient(params.model_config.alias)
     converter = llm_client.converter

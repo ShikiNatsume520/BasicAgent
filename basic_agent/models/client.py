@@ -19,8 +19,8 @@ from typing import AsyncIterator
 
 import litellm
 
-from src.models.config import get_config
-from src.models.types import (
+from basic_agent.models.config import get_config
+from basic_agent.models.types import (
     StreamChunk,
     ChunkType,
     MessageConverter,

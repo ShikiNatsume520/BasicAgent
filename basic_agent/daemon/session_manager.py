@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from typing import AsyncGenerator
 
-from src.models.types import Message, new_uuid
-from src.engine.queryengine import QueryEngine
+from basic_agent.models.types import Message, new_uuid
+from basic_agent.engine.queryengine import QueryEngine
 
 
 class SessionManager:
