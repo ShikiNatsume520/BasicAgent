@@ -1,11 +1,16 @@
 # BasicAgent v1.1 使用指南
 
+## 版本说明
+
+- **v1.1.1**：只有核心代码（basic_agent 模块 + 配置文件），可通过 pip 安装
+- **docs/usage-guide** 分支：包含完整文档、测试和示例
+
 ## 快速开始
 
 ### 安装
 
 ```bash
-# 从 GitHub 安装 v1.1.1 版本
+# 从 GitHub 安装 v1.1.1 版本（只有核心代码）
 pip install git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.1
 
 # 或者在 requirements.txt 中添加
