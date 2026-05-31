@@ -1,9 +1,7 @@
 [project]
 name = "basic-agent"
-version = "1.1.0"
+version = "1.1.1"
 description = "轻量级 LLM Agent 对话服务框架 - 专为实时对话游戏优化"
-readme = "README.md"
-license = {text = "MIT"}
 requires-python = ">=3.11"
 dependencies = [
     "litellm>=1.40",
@@ -30,11 +28,8 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["src*", "config*"]
+where = ["."]
+include = ["basic_agent*", "config*"]
 
 [tool.setuptools.package-data]
 config = ["*.json", "prompts/*.txt"]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
