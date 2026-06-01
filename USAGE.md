@@ -2,7 +2,8 @@
 
 ## 版本说明
 
-- **v1.1.3**：修复编码问题，所有 Python 文件添加 UTF-8 编码声明（推荐）
+- **v1.1.4**：修复对话记录存储路径，使用 cwd 参数（推荐）
+- **v1.1.3**：修复编码问题，添加 memory 模块（已废弃）
 - **v1.1.2**：只有核心代码 + 初始化脚本（已废弃）
 - **v1.1.1**：包含核心代码 + 配置文件（已废弃）
 - **docs/usage-guide** 分支：包含完整文档、测试和示例
@@ -12,11 +13,11 @@
 ### 1. 安装
 
 ```bash
-# 从 GitHub 安装 v1.1.3 版本（推荐）
-pip install git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.3
+# 从 GitHub 安装 v1.1.4 版本（推荐）
+pip install git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.4
 
 # 或者在 requirements.txt 中添加
-basic-agent @ git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.3
+basic-agent @ git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.4
 ```
 
 ### 2. 初始化配置
