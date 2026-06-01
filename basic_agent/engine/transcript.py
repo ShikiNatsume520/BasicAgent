@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TranscriptWriter — JSONL 持久化写入器
 

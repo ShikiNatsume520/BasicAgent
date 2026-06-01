@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 SessionManager — v1.0 单进程会话管理器
 

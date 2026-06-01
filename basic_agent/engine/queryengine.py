@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 QueryEngine — 会话级状态持有者
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 query — 无状态 LLM 调用 async generator
 

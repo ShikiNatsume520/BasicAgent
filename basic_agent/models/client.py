@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 LiteLLM 客户端
 
