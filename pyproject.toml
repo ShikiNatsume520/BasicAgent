@@ -1,6 +1,6 @@
 [project]
 name = "basic-agent"
-version = "1.1.1"
+version = "1.1.4"
 description = "轻量级 LLM Agent 对话服务框架 - 专为实时对话游戏优化"
 requires-python = ">=3.11"
 dependencies = [
