@@ -1,5 +1,5 @@
 """
-BasicAgent v1.1.2 包安装测试脚本
+BasicAgent v1.1.3 包安装测试脚本
 
 测试内容：
 1. 基本导入测试
@@ -247,7 +247,7 @@ def test_prompt_injection():
 def main():
     """主测试函数"""
     print("\n" + "=" * 60)
-    print("  BasicAgent v1.1.2 包安装测试")
+    print("  BasicAgent v1.1.3 包安装测试")
     print("=" * 60)
 
     results = []
