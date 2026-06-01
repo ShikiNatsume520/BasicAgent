@@ -2,27 +2,55 @@
 
 ## 版本说明
 
-- **v1.1.1**：只有核心代码（basic_agent 模块 + 配置文件），可通过 pip 安装
+- **v1.1.2**：只有核心代码 + 初始化脚本，可通过 pip 安装，需要运行初始化脚本生成配置
+- **v1.1.1**：包含核心代码 + 配置文件（已废弃）
 - **docs/usage-guide** 分支：包含完整文档、测试和示例
 
 ## 快速开始
 
-### 安装
+### 1. 安装
 
 ```bash
-# 从 GitHub 安装 v1.1.1 版本（只有核心代码）
-pip install git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.1
+# 从 GitHub 安装 v1.1.2 版本（只有核心代码）
+pip install git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.2
 
 # 或者在 requirements.txt 中添加
-basic-agent @ git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.1
+basic-agent @ git+https://github.com/ShikiNatsume520/BasicAgent.git@v1.1.2
 ```
 
-### 配置
+### 2. 初始化配置
 
-创建 `.env` 文件：
+```bash
+# 在你的项目目录下运行初始化脚本
+python -m basic_agent.init
+
+# 这会在当前目录生成：
+# config/
+#   BA_Agent.json           # 模型别名配置
+#   compression.json        # 压缩策略配置
+#   prompts/compact.txt     # 压缩提示词模板
+#   provider/*.json         # 各模型提供商配置
+# .env                      # API Keys 配置
+```
+
+### 3. 配置 API Key
+
+编辑生成的 `.env` 文件，添加你的 API Key：
 
 ```env
-DEEPSEEK_API_KEY=your_api_key_here
+# DeepSeek API Key (用于 deepseek-v4-flash, deepseek-v4-pro)
+DEEPSEEK_API_KEY=sk-your-api-key-here
+
+# OpenAI API Key (用于 gpt-4, gpt-4o-mini, gpt-4o)
+OPENAI_API_KEY=sk-your-api-key-here
+
+# 其他提供商的 API Key...
+```
+
+### 4. 开始使用
+
+```python
+from basic_agent.daemon.session_manager import SessionManager
 ```
 
 ## 基本使用
