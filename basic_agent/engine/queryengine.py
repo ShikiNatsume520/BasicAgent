@@ -65,7 +65,8 @@ class QueryEngine:
         self.model_alias = model_alias
 
         # ===== 外部依赖 =====
-        transcript_path = Path(f"data/sessions/{session_id}.jsonl")
+        # 使用 cwd 参数构建完整的对话记录路径
+        transcript_path = Path(cwd) / "data" / "sessions" / f"{session_id}.jsonl"
         self.transcript = TranscriptWriter(transcript_path)
 
         # 占位：Phase 2/3 实现
