@@ -1,6 +1,0 @@
-{
-  "litellm_model": "deepseek/deepseek-v4-flash",
-  "api_base": null,
-  "max_tokens": 128000,
-  "api_key_env": "DEEPSEEK_API_KEY"
-}

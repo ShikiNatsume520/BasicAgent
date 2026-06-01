@@ -1,6 +1,0 @@
-{
-  "litellm_model": "openai/gpt-4o-mini",
-  "api_base": null,
-  "max_tokens": 128000,
-  "api_key_env": "OPENAI_API_KEY"
-}
