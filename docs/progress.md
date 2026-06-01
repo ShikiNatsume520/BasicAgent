@@ -1,10 +1,37 @@
 # BasicAgent 开发进度
 
-## 当前阶段：v1.1 完成 ✅
+## 当前阶段：v1.1.5 — 配置自动补全系统 ✅
 
 v1.1 是专为 LLM 对话游戏优化的分支，实现了记忆裁剪压缩机制和提示词注入模块。
 
 ---
+
+## v1.1.5 更新内容 — 配置自动补全系统 ✅
+
+**核心改动：**
+- `config.py`: 优先使用工作目录下的 `config/`，缺失时自动创建
+- `init.py`: 新增 `ensure_config()` 和 `ensure_provider_config()` 内部函数
+- `pyproject.toml`: 移除 `config*` 包引用（不再打包配置文件）
+
+**行为变化：**
+- 首次调用 `get_config()` 时自动检测并补全配置文件
+- 缺失的 `BA_Agent.json`、`compression.json`、provider 配置自动创建
+- 全新的工作目录下无需手动运行 `python -m basic_agent.init`
+- API Key 不再强制要求（用户稍后编辑 `.env` 即可）
+- 设置 `BASIC_AGENT_STRICT=1` 可恢复严格模式
+
+**包内容（v1.1.5）：**
+```
+basic_agent/
+  ├── __init__.py
+  ├── init.py               # 初始化脚本
+  ├── daemon/               # 会话管理
+  ├── engine/               # 查询引擎
+  ├── memory/               # 内存压缩
+  ├── models/               # 数据模型
+  └── prompts/              # 提示词注入
+pyproject.toml              # 包配置（不含 config 引用）
+```
 
 ## v1.1 — 记忆与压缩系统 ✅
 
